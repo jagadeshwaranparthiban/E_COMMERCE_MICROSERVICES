@@ -53,7 +53,7 @@ public class User {
     }
 
     public void suspend() {
-        this.status = UserAccountStatus.ACTIVE;
+        this.status = UserAccountStatus.SUSPENDED;
     }
 
     public String getUserId() {
@@ -86,5 +86,10 @@ public class User {
 
     public UserRole getRole() {
         return role;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = Instant.now();
     }
 }
