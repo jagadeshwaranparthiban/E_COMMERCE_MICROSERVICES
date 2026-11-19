@@ -25,7 +25,7 @@ public class AuthController {
     //sign up
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public ResponseEntity<String> signUp(@RequestBody SignUpRequestDto signUpRequestDto) {
+    public ResponseEntity<SuccessResponse> signUp(@RequestBody SignUpRequestDto signUpRequestDto) {
         return ResponseEntity.ok(authService.signUp(signUpRequestDto));
     }
 
