@@ -48,7 +48,7 @@ public class UserService {
 
         return toDto(user);
     }
-    
+
     public void updateUser() {}
 
     private UserResponseDto toDto(User user) {
