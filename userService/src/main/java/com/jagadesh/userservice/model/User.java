@@ -21,6 +21,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserAccountStatus status;
 
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
+
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -32,6 +35,7 @@ public class User {
         this.userName = userName;
         this.verified = false;
         this.status = UserAccountStatus.ACTIVE;
+        this.role = UserRole.USER;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
     }
@@ -78,5 +82,9 @@ public class User {
 
     public Instant getUpdatedAt() {
         return updatedAt;
+    }
+
+    public UserRole getRole() {
+        return role;
     }
 }

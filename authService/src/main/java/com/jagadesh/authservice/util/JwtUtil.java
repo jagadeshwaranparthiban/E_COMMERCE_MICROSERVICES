@@ -1,5 +1,6 @@
 package com.jagadesh.authservice.util;
 
+import com.jagadesh.authservice.model.AuthUserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -24,9 +25,10 @@ public class JwtUtil {
         secretKey = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateToken(String username) {
+    public String generateToken(String username, AuthUserRole role) {
         return Jwts.builder()
                 .setSubject(username)
+                .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis()+ expiration))
                 .signWith(secretKey)
@@ -43,6 +45,11 @@ public class JwtUtil {
 
     public String extractUsername(String token) {
         return extractClaims(token).getSubject();
+    }
+
+    public AuthUserRole extractUserRole(String token) {
+        String role = (String) extractClaims(token).get("role");
+        return AuthUserRole.valueOf(role);
     }
 
     public boolean isTokenExpired(String token) {

@@ -1,11 +1,9 @@
 package com.jagadesh.authservice.service;
 
-import com.jagadesh.authservice.dto.AuthRequestDto;
-import com.jagadesh.authservice.dto.AuthResponseDto;
-import com.jagadesh.authservice.dto.RefreshTokenRequestDto;
-import com.jagadesh.authservice.dto.SignUpRequestDto;
+import com.jagadesh.authservice.dto.*;
 import com.jagadesh.authservice.exception.InvalidTokenException;
 import com.jagadesh.authservice.model.AuthAccount;
+import com.jagadesh.authservice.model.AuthUserRole;
 import com.jagadesh.authservice.model.PasswordResetToken;
 import com.jagadesh.authservice.model.RefreshToken;
 import com.jagadesh.authservice.repository.AuthAccountRepo;
@@ -78,7 +76,7 @@ public class AuthService {
             ));
 
             Optional<AuthAccount> authAccount = authAccountRepo.findByUsername(authRequestDto.username());
-            String accessToken = jwtUtil.generateToken(authRequestDto.username());
+            String accessToken = jwtUtil.generateToken(authRequestDto.username(), authAccount.get().getRole());
             String refreshToken = refreshTokenService.generateRefreshToken(authAccount.get().getUserId());
 
             return new AuthResponseDto(accessToken, refreshToken);
@@ -88,37 +86,44 @@ public class AuthService {
     }
 
     //sign up
-    public String signUp(SignUpRequestDto signUpRequestDto) {
+    public SuccessResponse signUp(SignUpRequestDto signUpRequestDto) {
         if (authAccountRepo.findByUsername(signUpRequestDto.username()).isPresent()) {
             throw new IllegalArgumentException("Username already exists.");
         }
+        if (authAccountRepo.findByEmail(signUpRequestDto.email()).isPresent()) {
+            throw new IllegalArgumentException("Email already exists.");
+        }
+
         String userId = "USR".concat(UUID.randomUUID().toString().replace("-", "").substring(9));
         String encodedPassword = passwordEncoder.encode(signUpRequestDto.password());
+
         AuthAccount authAccount = authAccountRepo.save(
                 new AuthAccount(
                         userId,
                         signUpRequestDto.username(),
                         signUpRequestDto.email(),
-                        encodedPassword
+                        encodedPassword,
+                        AuthUserRole.USER
                 )
         );
-        authEventPublisher.publishUserCreatedEvent( new UserCreatedEvent(
+        authEventPublisher.publishUserCreatedEvent(new UserCreatedEvent(
                 UUID.randomUUID().toString(),
                 authAccount.getUserId(),
                 authAccount.getUsername(),
                 signUpRequestDto.email(),
                 Instant.now()
         ));
-        return "User registered successfully.";
+
+        return new SuccessResponse("User registered successfully.");
     }
 
     //refresh
     public AuthResponseDto getNewRefreshToken(RefreshTokenRequestDto refreshTokenRequestDto) {
         RefreshToken storedToken = refreshTokenService.validateRefreshToken(refreshTokenRequestDto.refreshToken());
-        String existingUsername = authAccountRepo.findUsernameByUserId(storedToken.getUserId()).getUsername();
+        AuthAccount existingUser = authAccountRepo.findUsernameByUserId(storedToken.getUserId());
 
         refreshTokenRepo.delete(storedToken);
-        String newAccessToken = jwtUtil.generateToken(existingUsername);
+        String newAccessToken = jwtUtil.generateToken(existingUser.getUsername(), existingUser.getRole());
 
         String newRefreshToken = refreshTokenService.generateRefreshToken(storedToken.getUserId());
         return new AuthResponseDto(newAccessToken, newRefreshToken);
@@ -144,6 +149,7 @@ public class AuthService {
                 createdAt,
                 expiresAt
         );
+
         passwordResetTokenRepo.save(passwordResetToken);
         authEventPublisher.publishUserPasswordResetRequestedEvent(new UserPasswordResetRequestedEvent(
                 UUID.randomUUID().toString(),

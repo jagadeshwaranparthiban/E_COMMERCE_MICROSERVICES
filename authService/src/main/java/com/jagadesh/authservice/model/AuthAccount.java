@@ -15,18 +15,23 @@ public class AuthAccount {
 
     @Enumerated(EnumType.STRING)
     private AccountStatus status;
+
+    @Enumerated(EnumType.STRING)
+    private AuthUserRole role;
+
     private Instant createdAt;
     private Instant updatedAt;
 
     protected AuthAccount() {
     }
 
-    public AuthAccount(String userId, String username, String email, String passwordHash) {
+    public AuthAccount(String userId, String username, String email, String passwordHash, AuthUserRole role) {
         this.userId = userId;
         this.username = username;
         this.email = email;
         this.passwordHash = passwordHash;
         this.status = AccountStatus.ACTIVE;
+        this.role = role;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
     }
@@ -67,6 +72,8 @@ public class AuthAccount {
     public AccountStatus getStatus() {
         return status;
     }
+
+    public AuthUserRole getRole() { return role; }
 
     public void updatePassword(String encodedPassword) {
         this.passwordHash = encodedPassword;
