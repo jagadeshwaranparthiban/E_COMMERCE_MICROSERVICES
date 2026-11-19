@@ -4,7 +4,9 @@ server:
 spring:
   application:
     name: productCommandService
-
+  security:
+    jwt:
+      secret: ${JWT_SECRET}
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/product_service}
     username: ${DB_USERNAME}
