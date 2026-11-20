@@ -1,6 +1,7 @@
 package com.jagadesh.userservice.service;
 
 import com.jagadesh.userservice.dto.UserResponseDto;
+import com.jagadesh.userservice.exception.AuthorizationViolationException;
 import com.jagadesh.userservice.exception.UserNotFoundException;
 import com.jagadesh.userservice.model.User;
 import com.jagadesh.userservice.repository.UserRepo;
@@ -27,13 +28,21 @@ public class UserService {
         return users;
     }
 
-    public UserResponseDto getUserById(String id) {
+    public UserResponseDto getUserById(String id, String requesterUsername, Boolean isAdmin) {
         Optional<User> existingUser = userRepo.findById(id);
 
         if(existingUser.isEmpty()) {
             throw new UserNotFoundException("User with id " + id + " does not exist");
         }
         User user = existingUser.get();
+
+        if(isAdmin) {
+            return toDto(user);
+        }
+
+        if(!user.getUserName().equals(requesterUsername)) {
+            throw new AuthorizationViolationException("You are not authorized to access this user's information");
+        }
 
         return toDto(user);
     }
