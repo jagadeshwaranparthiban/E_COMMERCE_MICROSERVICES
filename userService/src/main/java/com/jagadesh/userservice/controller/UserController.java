@@ -25,11 +25,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
     public ResponseEntity<List<UserResponseDto>> getAllUsers() {
-        try {
-            return ResponseEntity.ok(userService.getAllUsers());
-        }catch(Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @GetMapping("/{id}")
