@@ -41,7 +41,10 @@ public class User {
     }
 
     public void updateEmail(String email) {
-        this.email = email;
+        if (!this.email.equalsIgnoreCase(email)) {
+            this.email = email;
+            this.verified = false;
+        }
     }
 
     public void verified() {

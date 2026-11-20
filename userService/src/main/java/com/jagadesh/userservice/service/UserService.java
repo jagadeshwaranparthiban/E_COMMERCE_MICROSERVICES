@@ -2,6 +2,7 @@ package com.jagadesh.userservice.service;
 
 import com.jagadesh.userservice.dto.UserResponseDto;
 import com.jagadesh.userservice.exception.AuthorizationViolationException;
+import com.jagadesh.userservice.exception.EmailAlreadyExistsException;
 import com.jagadesh.userservice.exception.UserNotFoundException;
 import com.jagadesh.userservice.model.User;
 import com.jagadesh.userservice.repository.UserRepo;
@@ -58,7 +59,19 @@ public class UserService {
         return toDto(user);
     }
 
-    public void updateUser() {}
+    public UserResponseDto updateUserProfile(String userName, String newEmail) {
+        User existingUser = userRepo.findByUserName(userName)
+                .orElseThrow(() -> new UserNotFoundException("User with username " + userName + " does not exist"));
+
+        if(userRepo.existsByEmailIgnoreCaseAndUserIdNot(newEmail, existingUser.getUserId())) {
+            throw new EmailAlreadyExistsException("Email " + newEmail + " is already in use by another user");
+        }
+
+        existingUser.updateEmail(newEmail);
+        User updatedUser = userRepo.save(existingUser);
+
+        return toDto(updatedUser);
+    }
 
     private UserResponseDto toDto(User user) {
         return new UserResponseDto(

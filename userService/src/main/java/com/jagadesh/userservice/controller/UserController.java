@@ -1,15 +1,14 @@
 package com.jagadesh.userservice.controller;
 
+import com.jagadesh.userservice.dto.UserProfileUpdateDto;
 import com.jagadesh.userservice.dto.UserResponseDto;
 import com.jagadesh.userservice.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -50,5 +49,14 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserByUsername(username));
     }
 
+    @PatchMapping("/me")
+    public ResponseEntity<UserResponseDto> updateProfile(
+            @Valid @RequestBody UserProfileUpdateDto request,
+            Authentication authentication
+    ) {
+        UserResponseDto updatedUser =
+                userService.updateUserProfile(authentication.getName(), request.email());
 
+        return ResponseEntity.ok(updatedUser);
+    }
 }
