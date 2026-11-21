@@ -1,5 +1,6 @@
 package com.jagadesh.productQueryService.service;
 
+import com.jagadesh.productQueryService.dto.ProductResponseDto;
 import com.jagadesh.productQueryService.exception.ProductDoesNotExistException;
 import com.jagadesh.productQueryService.model.Product;
 import com.jagadesh.productQueryService.repository.ProductRepo;
@@ -10,30 +11,42 @@ import java.util.Optional;
 
 @Service
 public class ProductQueryService {
+
     private ProductRepo productRepo;
 
     public ProductQueryService(ProductRepo productRepo) {
         this.productRepo = productRepo;
     }
 
-    public List<Product> getAllProducts() {
-        return productRepo.findAll();
+    public List<ProductResponseDto> getAllProducts() {
+
+        List<ProductResponseDto> products = productRepo.findAll().stream()
+                .map(this::toDto)
+                .toList();
+
+        return products;
     }
 
-    public Product getProductById(Long id) {
-        Optional<Product> optional = productRepo.findById(id);
-        if(optional.isEmpty()) {
-            throw new RuntimeException("Product not found");
-        }
-        return optional.get();
+    public ProductResponseDto getProductById(Long id) {
+        Product existingProduct = productRepo.findById(id)
+                .orElseThrow(() -> new ProductDoesNotExistException("Product with id " + id + " does not exist"));
+
+        return toDto(existingProduct);
     }
 
-    public Product getProductByName(String productName) {
-        Optional<Product> optional = productRepo.findByName(productName);
-        if(optional.isEmpty()) {
-            throw new ProductDoesNotExistException("Product: "+productName+" not found");
-        }
-        return optional.get();
+    public ProductResponseDto getProductByName(String productName) {
+        Product existingProduct = productRepo.findByName(productName)
+                .orElseThrow(() -> new ProductDoesNotExistException("Product with name " + productName + " does not exist"));
+
+        return toDto(existingProduct);
     }
 
+    private ProductResponseDto toDto(Product product) {
+        return new ProductResponseDto(
+                product.getProductId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice().doubleValue()
+        );
+    }
 }
